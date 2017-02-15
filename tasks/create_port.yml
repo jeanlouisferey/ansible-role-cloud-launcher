@@ -1,0 +1,12 @@
+---
+- name: "Processing port {{ item_port.name }}"
+  os_port:
+    cloud: "{{ item_cloud.oscc_cloud|default(item_cloud.name) }}"
+    state: "{{ item_port.state|default(omit) }}"
+    name: "{{ item_port.name }}"
+    region_name: "{{ item_cloud.region_name|default(omit) }}"
+    validate_certs: "{{ os_validate_certs }}"
+    network: "{{ item_port.network_name|default(omit) }}"
+    security_groups: "{{ item_port.security_groups|default(omit) }}"
+    allowed_address_pairs: "{{ item_port.allowed_address_pairs_list|default(omit) }}"
+    fixed_ips: "{{ item_port.fixed_ips|default(omit) }}"

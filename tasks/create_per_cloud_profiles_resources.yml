@@ -116,6 +116,15 @@
   tags:
     - security_groups_rules
 
+- name: "Processing ports resources for profile {{ item_profile }}"
+  include: create_port.yml
+  with_items: "{{ profiles|selectattr('name', 'equalto', item_profile)|map(attribute='ports')|list }}"
+  loop_control:
+    loop_var: item_port
+  when: "{{ 'ports' in profiles|selectattr('name', 'equalto', item_profile)|list|first }}"
+  tags:
+    - ports
+
 - name: "Processing keypairs resources for profile {{ item_profile }}"
   include: create_keypair.yml
   with_items: "{{ profiles|selectattr('name', 'equalto', item_profile)|map(attribute='keypairs')|list }}"

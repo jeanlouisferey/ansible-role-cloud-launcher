@@ -6,6 +6,8 @@
     name: "{{ item_subnet.name }}"
     network_name: "{{ item_subnet.network_name|default(omit) }}"
     cidr: "{{ item_subnet.cidr }}"
+    allocation_pool_start: "{{ item_subnet.allocation_pool_start|default(omit) }}"
+    allocation_pool_end: "{{ item_subnet.allocation_pool_end|default(omit) }}"
     dns_nameservers: "{{ item_subnet.dns_nameservers|default(omit) }}"
     region_name: "{{ item_cloud.region_name|default(omit) }}"
     validate_certs: "{{ os_validate_certs }}"
