@@ -1,5 +1,5 @@
 ---
-- name: "Processing per cloud domains"
+- name: "Processing per cloud domains for cloud {{ item_cloud.name }}"
   include: create_domain.yml
   with_items: "{{ item_cloud.domains|default([]) }}"
   loop_control:
@@ -7,7 +7,7 @@
   tags:
     - domains
 
-- name: "Processing per cloud projects"
+- name: "Processing per cloud projects for cloud {{ item_cloud.name }}"
   include: create_project.yml
   with_items: "{{ item_cloud.projects|default([]) }}"
   loop_control:
@@ -15,7 +15,7 @@
   tags:
     - projects
 
-- name: "Processing per cloud users"
+- name: "Processing per cloud users for cloud {{ item_cloud.name }}"
   include: create_user.yml
   with_items: "{{ item_cloud.users|default([]) }}"
   loop_control:
@@ -23,7 +23,7 @@
   tags:
     - users
 
-- name: "Processing per cloud roles"
+- name: "Processing per cloud roles for cloud {{ item_cloud.name }}"
   include: create_role.yml
   with_items: "{{ item_cloud.roles|default([]) }}"
   loop_control:
@@ -31,7 +31,7 @@
   tags:
     - roles
 
-- name: "Processing per cloud user roles"
+- name: "Processing per cloud user roles for cloud {{ item_cloud.name }}"
   include: create_user_role.yml
   with_items: "{{ item_cloud.user_roles|default([]) }}"
   loop_control:
@@ -39,7 +39,7 @@
   tags:
     - user_roles
 
-- name: "Processing per cloud quotas"
+- name: "Processing per cloud quotas for cloud {{ item_cloud.name }}"
   include: create_quota.yml
   with_items: "{{ item_cloud.quotas|default([]) }}"
   loop_control:
@@ -47,7 +47,7 @@
   tags:
     - quotas
 
-- name: "Processing per cloud networks"
+- name: "Processing per cloud networks for cloud {{ item_cloud.name }}"
   include: create_network.yml
   with_items: "{{ item_cloud.networks|default([]) }}"
   loop_control:
@@ -55,7 +55,7 @@
   tags:
     - networks
 
-- name: "Processing per cloud subnets"
+- name: "Processing per cloud subnets for cloud {{ item_cloud.name }}"
   include: create_subnet.yml
   with_items: "{{ item_cloud.subnets|default([]) }}"
   loop_control:
@@ -63,7 +63,7 @@
   tags:
     - subnets
 
-- name: "Processing per cloud routers"
+- name: "Processing per cloud routers for cloud {{ item_cloud.name }}"
   include: create_router.yml
   with_items: "{{ item_cloud.routers|default([]) }}"
   loop_control:
@@ -71,7 +71,7 @@
   tags:
     - routers
 
-- name: "Processing per cloud flavors"
+- name: "Processing per cloud flavors for cloud {{ item_cloud.name }}"
   include: create_flavor.yml
   with_items: "{{ item_cloud.flavors|default([]) }}"
   loop_control:
@@ -79,7 +79,7 @@
   tags:
     - flavors
 
-- name: "Processing per cloud images"
+- name: "Processing per cloud images for cloud {{ item_cloud.name }}"
   include: create_image.yml
   with_items: "{{ item_cloud.images|default([]) }}"
   loop_control:
@@ -87,7 +87,7 @@
   tags:
     - images
 
-- name: "Processing per cloud security_groups"
+- name: "Processing per cloud security_groups for cloud {{ item_cloud.name }}"
   include: create_security_group.yml
   with_items: "{{ item_cloud.security_groups|default([]) }}"
   loop_control:
@@ -95,7 +95,7 @@
   tags:
     - security_groups
 
-- name: "Processing per cloud security_group_rules"
+- name: "Processing per cloud security_group_rules for cloud {{ item_cloud.name }}"
   include: create_security_group_rule.yml
   with_items: "{{ item_cloud.security_groups_rules|default([]) }}"
   loop_control:
@@ -103,7 +103,16 @@
   tags:
     - security_groups_rules
 
-- name: "Processing per cloud keypairs"
+- name: "Processing ports resources for cloud {{ item_cloud.name }}"
+  include: create_port.yml
+  with_items: "{{ clouds|selectattr('name', 'equalto', item_cloud)|map(attribute='ports')|list }}"
+  loop_control:
+    loop_var: item_port
+  when: "{{ 'ports' in clouds|selectattr('name', 'equalto', item_cloud)|list|first }}"
+  tags:
+    - ports
+
+- name: "Processing per cloud keypairs for cloud {{ item_cloud.name }}"
   include: create_keypair.yml
   with_items: "{{ item_cloud.keypairs|default([]) }}"
   loop_control:
@@ -111,7 +120,7 @@
   tags:
     - keypairs
 
-- name: "Processing per cloud volumes"
+- name: "Processing per cloud volumes for cloud {{ item_cloud.name }}"
   include: create_volume.yml
   with_items: "{{ item_cloud.volumes|default([]) }}"
   loop_control:
@@ -119,7 +128,7 @@
   tags:
     - volumes
 
-- name: "Processing per cloud servers"
+- name: "Processing per cloud servers for cloud {{ item_cloud.name }}"
   include: create_server.yml
   with_items: "{{ item_cloud.servers|default([]) }}"
   loop_control:

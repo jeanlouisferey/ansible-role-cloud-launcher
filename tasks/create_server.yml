@@ -2,7 +2,7 @@
 - include: generate_keypair.yml
   when: generate_keypair|bool
 
-- name: "Processing server {{ item_server.name }} with nics defined"
+- name: "Processing server {{ item_server.name }} with nics defined on cloud {{ item_cloud.name }}"
   os_server:
     cloud: "{{ item_cloud.oscc_cloud|default(item_cloud.name) }}"
     state: "{{ item_server.state|default(omit) }}"
@@ -40,7 +40,7 @@
   with_items: "{{ os_server_result.results|default([]) }}"
   when: "{{ item_server.nics is defined }}"
 
-- name: "Processing server {{ item_server.name }} with nics not defined"
+- name: "Processing server {{ item_server.name }} with nics not defined on cloud {{ item_cloud.name }}"
   os_server:
     cloud: "{{ item_cloud.oscc_cloud|default(item_cloud.name) }}"
     state: "{{ item_server.state|default(omit) }}"

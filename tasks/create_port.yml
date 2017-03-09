@@ -1,5 +1,5 @@
 ---
-- name: "Processing port {{ item_port.name }}"
+- name: "Processing port {{ item_port.name }} on cloud {{ item_cloud.name }}"
   os_port:
     cloud: "{{ item_cloud.oscc_cloud|default(item_cloud.name) }}"
     state: "{{ item_port.state|default(omit) }}"

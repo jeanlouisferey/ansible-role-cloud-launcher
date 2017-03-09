@@ -1,5 +1,5 @@
 ---
-- name: "Processing quotas for project {{ item_quota.name }}"
+- name: "Processing quotas for project {{ item_quota.name }} on cloud {{ item_cloud.name }}"
   command: openstack quota set --"{{ item.key }}" "{{ item.value }}" "{{ item_quota.name }}"
   environment:
     OS_CLOUD: "{{ item_cloud.name }}"
@@ -7,7 +7,7 @@
   with_dict: "{{ item_quota }}"
   when: item.key != 'name' and os_validate_certs == 'yes'
 
-- name: "Processing quotas for project {{ item_quota.name }}"
+- name: "Processing quotas for project {{ item_quota.name }} on cloud {{ item_cloud.name }}"
   command: openstack --insecure quota set --"{{ item.key }}" "{{ item.value }}" "{{ item_quota.name }}"
   environment:
     OS_CLOUD: "{{ item_cloud.name }}"
