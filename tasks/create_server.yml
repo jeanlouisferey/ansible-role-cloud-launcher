@@ -30,6 +30,7 @@
     userdata: "{{ item_server.userdata|default(omit) }}"
     volume_size: "{{ item_server.volume_size|default(omit) }}"
     volumes: "{{ item_server.volumes|default(omit) }}"
+    availability_zone: "{{ item_server.availability_zone|default(omit) }}"
     region_name: "{{ item_cloud.region_name|default(omit) }}"
     validate_certs: "{{ os_validate_certs }}"
   with_sequence: start=1 end={{ item_server.node_count|default(1) }} format=%02x
@@ -68,6 +69,7 @@
     userdata: "{{ item_server.userdata|default(omit) }}"
     volume_size: "{{ item_server.volume_size|default(omit) }}"
     volumes: "{{ item_server.volumes|default(omit) }}"
+    availability_zone: "{{ item_server.availability_zone|default(omit) }}"
     region_name: "{{ item_cloud.region_name|default(omit) }}"
     validate_certs: "{{ os_validate_certs }}"
   with_sequence: start=1 end={{ item_server.node_count|default(1) }} format=%02x
