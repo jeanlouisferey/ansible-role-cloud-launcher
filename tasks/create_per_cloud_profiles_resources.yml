@@ -169,3 +169,12 @@
   when: "{{ 'servers' in profiles|selectattr('name', 'equalto', item_profile)|list|first }}"
   tags:
     - servers
+
+- name: "Processing ecs resources for profile {{ item_profile }}"
+  include: create_ecs.yml
+  with_items: "{{ profiles|selectattr('name', 'equalto', item_profile)|map(attribute='ecss')|list }}"
+  loop_control:
+    loop_var: item_ecs
+  when: "{{ 'ecss' in profiles|selectattr('name', 'equalto', item_profile)|list|first }}"
+  tags:
+    - ecss

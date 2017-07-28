@@ -1,0 +1,41 @@
+# playbook de test.
+# Ne pas utiliser comme tel
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+  - name: "Request token from AUTH API to create vpc {{ item_vpc.name }} on cloud {{ item_cloud.name }}"
+    uri:
+      url: "{{ auth_url }}/auth/tokens"
+      method: POST
+      body_format: raw
+      follow_redirects: all
+      status_code: 201
+      return_content: yes
+      validate_certs: yes
+      HEADER_Content-Type: "application/json"
+      body: "{{ lookup('template', 'templates/fe-token.json.j2',convert_data=True)|to_json }}"
+    register: token
+
+  - name: "Request vpc list from AUTH API to  create vpcsubnet {{ item_vpcsubnet.name }} on cloud {{ item_cloud.name }}"
+    uri:
+      url: "{{ auth_url_vpc }}/{{ project_id }}/vpcs"
+      method: GET
+      return_content: yes
+      validate_certs: yes
+      HEADER_Content-Type: "application/json"
+      HEADER_X-Auth-Token: "{{ token['x_subject_token'] }}"
+    register: vpclist
+
+  - name: "Get network ID"
+    set_fact:
+      vpcid: "{{vpclist.json|json_query(MyQuery)}}"
+    vars:
+      MyNetwork: "ESD-NETWORK"
+      MyQuery: "vpcs[?name=='{{ MyNetwork }}'].id"
+
+  - name: "print vpclist"
+    debug:
+      msg: "{{vpcid}}"

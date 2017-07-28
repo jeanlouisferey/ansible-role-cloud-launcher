@@ -150,3 +150,11 @@
     loop_var: item_server
   tags:
     - servers
+
+- name: "Processing per cloud servers for cloud {{ item_cloud.name }}"
+  include: create_ecs.yml
+  with_items: "{{ item_cloud.ecss|default([]) }}"
+  loop_control:
+    loop_var: item_ecs
+  tags:
+    - ecss

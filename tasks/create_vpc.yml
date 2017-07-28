@@ -11,6 +11,7 @@
     body_format: raw
     follow_redirects: all
     status_code: 201
+    timeout: 180
     return_content: yes
     validate_certs: yes
     HEADER_Content-Type: "application/json"
@@ -23,6 +24,7 @@
     method: POST
     body_format: raw
     follow_redirects: all
+    timeout: 180
     return_content: yes
     validate_certs: yes
     HEADER_Content-Type: "application/json"

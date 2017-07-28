@@ -1,0 +1,114 @@
+---
+- include: generate_keypair.yml
+  when: generate_keypair|bool
+
+- name: "Request token from AUTH API to get vpcs list on cloud {{ item_cloud.name }}"
+  uri:
+    url: "{{ auth_url }}/auth/tokens"
+    method: POST
+    body_format: raw
+    follow_redirects: all
+    status_code: 201
+    timeout: 180
+    return_content: yes
+    validate_certs: yes
+    HEADER_Content-Type: "application/json"
+    body: "{{ lookup('template', 'templates/fe-token.json.j2',convert_data=True)|to_json }}"
+  register: token
+
+- name: "Request vpc list from AUTH API to create ecs {{ item_ecs.name }} on cloud {{ item_cloud.name }}"
+  uri:
+    url: "{{ auth_url_vpc }}/{{ project_id }}/vpcs"
+    method: GET
+    return_content: yes
+    timeout: 180
+    validate_certs: yes
+    HEADER_Content-Type: "application/json"
+    HEADER_X-Auth-Token: "{{ token['x_subject_token'] }}"
+  register: vpclist
+
+- name: "Get network ID for {{ item_ecs.name }} on cloud {{ item_cloud.name }}"
+  set_fact:
+    vpcid: "{{vpclist.json|json_query(MyQuery)| join(' ')}}"
+  vars:
+    MyQuery: "vpcs[?name=='{{ item_ecs.network }}'].id"
+
+- name: "Processing server {{ item_ecs.name }} with nics defined on cloud {{ item_cloud.name }}"
+  os_server:
+    cloud: "{{ item_cloud.oscc_cloud|default(item_cloud.name) }}"
+    state: "{{ item_ecs.state|default(omit) }}"
+    name: "{{ item_ecs.name.partition('.')[0] }}{{ '' if item_ecs.node_count is not defined else item }}{{ item_ecs.name.partition('.')[1] + item_ecs.name.partition('.')[2] }}"
+    image: "{{ item_ecs.image }}"
+    auto_ip: "{{ item_ecs.auto_ip|default(omit) }}"
+    boot_from_volume: "{{ item_ecs.boot_from_volume|default(omit) }}"
+    boot_volume: "{{ item_ecs.boot_volume|default(omit) }}"
+    config_drive: "{{ item_ecs.config_drive|default(omit) }}"
+    flavor: "{{ item_ecs.flavor|default(omit) }}"
+    flavor_include: "{{ item_ecs.flavor_include|default(omit) }}"
+    flavor_ram: "{{ item_ecs.flavor_ram|default(omit) }}"
+    floating_ip_pools: "{{ item_ecs.floating_ip_pools|default(omit) }}"
+    floating_ips: "{{ item_ecs.floating_ips|default(omit) }}"
+    image_exclude: "{{ item_ecs.image_exclude|default(omit) }}"
+    key: "{{ item_ecs.key|default(omit) }}"
+    key_name: "{{ cl_generated_keypair_name|default(item_ecs.key_name)|default(omit) }}"
+    meta: "{{ item_ecs.meta|default(omit) }}"
+    network: "{{ vpcid|default(omit) }}"
+    #nics: "{{ item_ecs.nics|default(omit) }}"
+    nics: "port-name={{ item_ecs.nics|join(',port-name=') }}"
+    scheduler_hints: "{{ item_ecs.scheduler_hints|default(omit) }}"
+    security_groups: "{{ item_ecs.security_groups|default(omit) }}"
+    terminate_volume: "{{ item_ecs.terminate_volume|default(omit) }}"
+    userdata: "{{ item_ecs.userdata|default(omit) }}"
+    volume_size: "{{ item_ecs.volume_size|default(omit) }}"
+    volumes: "{{ item_ecs.volumes|default(omit) }}"
+    availability_zone: "{{ item_ecs.availability_zone|default(omit) }}"
+    region_name: "{{ item_cloud.region_name|default(omit) }}"
+    timeout: 180
+    validate_certs: "{{ os_validate_certs }}"
+  with_sequence: start=1 end={{ item_ecs.node_count|default(1) }} format=%02x
+  register: os_server_result
+  when: "{{ item_ecs.nics is defined }}"
+
+- add_host: name={{ item.server.name }} groups=cl_servers_just_created ansible_ssh_host={{ item.server.public_v4 }}
+  with_items: "{{ os_server_result.results|default([]) }}"
+  when: "{{ item_ecs.nics is defined }}"
+
+- name: "Processing server {{ item_ecs.name }} with nics not defined on cloud {{ item_cloud.name }}"
+  os_server:
+    cloud: "{{ item_cloud.oscc_cloud|default(item_cloud.name) }}"
+    state: "{{ item_ecs.state|default(omit) }}"
+    name: "{{ item_ecs.name.partition('.')[0] }}{{ '' if item_ecs.node_count is not defined else item }}{{ item_ecs.name.partition('.')[1] + item_ecs.name.partition('.')[2] }}"
+    image: "{{ item_ecs.image }}"
+    auto_ip: "{{ item_ecs.auto_ip|default(omit) }}"
+    boot_from_volume: "{{ item_ecs.boot_from_volume|default(omit) }}"
+    boot_volume: "{{ item_ecs.boot_volume|default(omit) }}"
+    config_drive: "{{ item_ecs.config_drive|default(omit) }}"
+    flavor: "{{ item_ecs.flavor|default(omit) }}"
+    flavor_include: "{{ item_ecs.flavor_include|default(omit) }}"
+    flavor_ram: "{{ item_ecs.flavor_ram|default(omit) }}"
+    floating_ip_pools: "{{ item_ecs.floating_ip_pools|default(omit) }}"
+    floating_ips: "{{ item_ecs.floating_ips|default(omit) }}"
+    image_exclude: "{{ item_ecs.image_exclude|default(omit) }}"
+    key: "{{ item_ecs.key|default(omit) }}"
+    key_name: "{{ cl_generated_keypair_name|default(item_ecs.key_name)|default(omit) }}"
+    meta: "{{ item_ecs.meta|default(omit) }}"
+    network: "{{ vpcid|default(omit) }}"
+    nics: "{{ item_ecs.nics|default(omit) }}"
+    #nics: "port-name={{ item_ecs.nics|join(',port-name=') }}"
+    scheduler_hints: "{{ item_ecs.scheduler_hints|default(omit) }}"
+    security_groups: "{{ item_ecs.security_groups|default(omit) }}"
+    terminate_volume: "{{ item_ecs.terminate_volume|default(omit) }}"
+    userdata: "{{ item_ecs.userdata|default(omit) }}"
+    volume_size: "{{ item_ecs.volume_size|default(omit) }}"
+    volumes: "{{ item_ecs.volumes|default(omit) }}"
+    availability_zone: "{{ item_ecs.availability_zone|default(omit) }}"
+    region_name: "{{ item_cloud.region_name|default(omit) }}"
+    timeout: 180
+    validate_certs: "{{ os_validate_certs }}"
+  with_sequence: start=1 end={{ item_ecs.node_count|default(1) }} format=%02x
+  register: os_server_result2
+  when: "{{ item_ecs.nics is not defined }}"
+
+- add_host: name={{ item.server.name }} groups=cl_servers_just_created ansible_ssh_host={{ item.server.public_v4 }}
+  with_items: "{{ os_server_result2.results|default([]) }}"
+  when: "{{ item_ecs.nics is not defined }}"
