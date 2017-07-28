@@ -53,6 +53,24 @@
   tags:
     - quotas
 
+- name: "Processing vpc resources for profile {{ item_profile }}"
+  include: create_vpc.yml
+  with_items: "{{ profiles|selectattr('name', 'equalto', item_profile)|map(attribute='vpcs')|list }}"
+  loop_control:
+    loop_var: item_vpc
+  when: "{{ 'vpcs' in profiles|selectattr('name', 'equalto', item_profile)|list|first }}"
+  tags:
+    - vpcs
+
+- name: "Processing vpcsubnets resources for profile {{ item_profile }}"
+  include: create_vpcsubnet.yml
+  with_items: "{{ profiles|selectattr('name', 'equalto', item_profile)|map(attribute='vpcsubnets')|list }}"
+  loop_control:
+    loop_var: item_vpcsubnet
+  when: "{{ 'vpcsubnets' in profiles|selectattr('name', 'equalto', item_profile)|list|first }}"
+  tags:
+    - vpcsubnets
+
 - name: "Processing networks resources for profile {{ item_profile }}"
   include: create_network.yml
   with_items: "{{ profiles|selectattr('name', 'equalto', item_profile)|map(attribute='networks')|list }}"

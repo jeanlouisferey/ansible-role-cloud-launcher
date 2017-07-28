@@ -47,6 +47,22 @@
   tags:
     - quotas
 
+- name: "Processing vpc resources for profile {{ item_profile }}"
+  include: create_vpc.yml
+  with_items: "{{ item_cloud.vpcs|default([]) }}"
+  loop_control:
+    loop_var: item_vpc
+  tags:
+    - vpcs
+
+- name: "Processing vpcsubnets resources for profile {{ item_profile }}"
+  include: create_vpcsubnet.yml
+  with_items: "{{ item_cloud.vpcsubnets|default([]) }}"
+  loop_control:
+    loop_var: item_vpcsubnet
+  tags:
+    - vpcsubnets
+
 - name: "Processing per cloud networks for cloud {{ item_cloud.name }}"
   include: create_network.yml
   with_items: "{{ item_cloud.networks|default([]) }}"
@@ -105,10 +121,9 @@
 
 - name: "Processing ports resources for cloud {{ item_cloud.name }}"
   include: create_port.yml
-  with_items: "{{ clouds|selectattr('name', 'equalto', item_cloud)|map(attribute='ports')|list }}"
+  with_items: "{{ item_cloud.ports|default([]) }}"
   loop_control:
     loop_var: item_port
-  when: "{{ 'ports' in clouds|selectattr('name', 'equalto', item_cloud)|list|first }}"
   tags:
     - ports
 
