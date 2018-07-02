@@ -2,6 +2,11 @@
 - include: generate_keypair.yml
   when: generate_keypair|bool
 
+- name: "Processing server_group for {{ item_server.name }} on cloud {{ item_cloud.name }}"
+  set_fact:
+    sc_hint: 'group={{ hostvars["oarcb-"+item_server.server_group].group_id }}'
+  when: "( item_server.server_group is defined )"
+
 - name: "Processing server {{ item_server.name }} with nics defined on cloud {{ item_cloud.name }}"
   os_server:
     cloud: "{{ item_cloud.oscc_cloud|default(item_cloud.name) }}"
@@ -24,7 +29,8 @@
     network: "{{ item_server.network|default(omit) }}"
     #nics: "{{ item_server.nics|default(omit) }}"
     nics: "port-name={{ item_server.nics|join(',port-name=') }}"
-    scheduler_hints: "{{ item_server.scheduler_hints|default(omit) }}"
+    #scheduler_hints: "{{ item_server.scheduler_hints|default(omit) }}"
+    scheduler_hints: "{{ sc_hint|default(omit) }}"
     security_groups: "{{ item_server.security_groups|default(omit) }}"
     terminate_volume: "{{ item_server.terminate_volume|default(omit) }}"
     userdata: "{{ item_server.userdata|default(omit) }}"
@@ -33,13 +39,14 @@
     availability_zone: "{{ item_server.availability_zone|default(omit) }}"
     region_name: "{{ item_cloud.region_name|default(omit) }}"
     validate_certs: "{{ os_validate_certs }}"
+    wait: yes
   with_sequence: start=1 end={{ item_server.node_count|default(1) }} format=%02x
   register: os_server_result
-  when: "{{ item_server.nics is defined }}"
+  when: "( item_server.nics is defined )"
 
 - add_host: name={{ item.server.name }} groups=cl_servers_just_created ansible_ssh_host={{ item.server.public_v4 }}
   with_items: "{{ os_server_result.results|default([]) }}"
-  when: "{{ item_server.nics is defined }}"
+  when: "( item_server.nics is defined )"
 
 - name: "Processing server {{ item_server.name }} with nics not defined on cloud {{ item_cloud.name }}"
   os_server:
@@ -62,8 +69,8 @@
     meta: "{{ item_server.meta|default(omit) }}"
     network: "{{ item_server.network|default(omit) }}"
     nics: "{{ item_server.nics|default(omit) }}"
-    #nics: "port-name={{ item_server.nics|join(',port-name=') }}"
-    scheduler_hints: "{{ item_server.scheduler_hints|default(omit) }}"
+    #scheduler_hints: "{{ item_server.scheduler_hints|default(omit) }}"
+    scheduler_hints: "{{ sc_hint|default(omit) }}"
     security_groups: "{{ item_server.security_groups|default(omit) }}"
     terminate_volume: "{{ item_server.terminate_volume|default(omit) }}"
     userdata: "{{ item_server.userdata|default(omit) }}"
@@ -72,10 +79,11 @@
     availability_zone: "{{ item_server.availability_zone|default(omit) }}"
     region_name: "{{ item_cloud.region_name|default(omit) }}"
     validate_certs: "{{ os_validate_certs }}"
+    wait: yes
   with_sequence: start=1 end={{ item_server.node_count|default(1) }} format=%02x
   register: os_server_result2
-  when: "{{ item_server.nics is not defined }}"
+  when: "( item_server.nics is not defined )"
 
 - add_host: name={{ item.server.name }} groups=cl_servers_just_created ansible_ssh_host={{ item.server.public_v4 }}
   with_items: "{{ os_server_result2.results|default([]) }}"
-  when: "{{ item_server.nics is not defined }}"
+  when: "( item_server.nics is not defined )"

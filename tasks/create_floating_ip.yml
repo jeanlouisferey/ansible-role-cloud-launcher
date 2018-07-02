@@ -1,0 +1,17 @@
+---
+- name: "Processing floating_ip {{ item_floating_ip.name }} on cloud {{ item_cloud.name }}"
+  os_floating_ip:
+    server: "{{ item_floating_ip.server|default(omit) }}"
+    cloud: "{{ item_cloud.oscc_cloud|default(item_cloud.name) }}"
+    api_timeout: 180
+    floating_ip_address: "{{ item_floating_ip.address|default(omit) }}"
+    reuse: "{{ item_floating_ip.address_reuse|default(omit) }}"
+    wait: yes # Should ansible wait until the requested resource is complete.
+    fixed_address: "{{ item_floating_ip.fixed_address|default(omit) }}"
+    network: "{{ item_floating_ip.external_network|default(omit) }}"
+    region_name: "{{ item_floating_ip.region_name|default(omit) }}"
+    nat_destination: "{{ item_floating_ip.private_network|default(omit) }}"
+    #purge: # When I(state) is absent, indicates whether or not to delete the floating IP completely, or only detach it from the server. Default is to detach only.
+    state: "{{ item_floating_ip.state|default(omit) }}"
+    timeout: 180 # How long should ansible wait for the requested resource.
+    validate_certs: "{{ os_validate_certs }}"

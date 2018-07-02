@@ -1,0 +1,20 @@
+---
+- name: "Processing server_group {{ item_server_group.name }} on cloud {{ item_cloud.name }}"
+  os_server_group:
+    name: "{{ item_server_group.name }}"
+    cloud: "{{ item_cloud.oscc_cloud|default(item_cloud.name) }}"
+    region_name: "{{ item_server_group.region_name|default(omit) }}"
+    wait: yes # Should ansible wait until the requested resource is complete.
+    timeout: 180 # How long should ansible wait for the requested resource.
+    state: "{{ item_server_group.state|default(omit) }}"
+    # A list of one or more policy names to associate with the server group. The list must contain at least one policy name. The current valid policy names are anti-affinity, affinity, soft-anti-affinity and soft-affinity.
+    policies: "{{ item_server_group.policies_list|default(omit) }}"
+    validate_certs: "{{ os_validate_certs }}"
+  register: group
+
+# we store the openstack group_id because today shade can't use the group name
+- name: "Storing server_group {{ item_server_group.name }} on cloud {{ item_cloud.name }}"
+  add_host:
+    name: "oarcb-{{ item_server_group.name }}"
+    group_id: "{{ group.server_group.id }}"
+  when: "( item_server_group.state is defined and item_server_group.state == 'present')"

@@ -47,22 +47,6 @@
   tags:
     - quotas
 
-- name: "Processing vpc resources for profile {{ item_profile }}"
-  include: create_vpc.yml
-  with_items: "{{ item_cloud.vpcs|default([]) }}"
-  loop_control:
-    loop_var: item_vpc
-  tags:
-    - vpcs
-
-- name: "Processing vpcsubnets resources for profile {{ item_profile }}"
-  include: create_vpcsubnet.yml
-  with_items: "{{ item_cloud.vpcsubnets|default([]) }}"
-  loop_control:
-    loop_var: item_vpcsubnet
-  tags:
-    - vpcsubnets
-
 - name: "Processing per cloud networks for cloud {{ item_cloud.name }}"
   include: create_network.yml
   with_items: "{{ item_cloud.networks|default([]) }}"
@@ -121,9 +105,10 @@
 
 - name: "Processing ports resources for cloud {{ item_cloud.name }}"
   include: create_port.yml
-  with_items: "{{ item_cloud.ports|default([]) }}"
+  with_items: "{{ clouds|selectattr('name', 'equalto', item_cloud)|map(attribute='ports')|list }}"
   loop_control:
     loop_var: item_port
+  when: "{{ 'ports' in clouds|selectattr('name', 'equalto', item_cloud)|list|first }}"
   tags:
     - ports
 
@@ -143,6 +128,14 @@
   tags:
     - volumes
 
+- name: "Processing per cloud server_groups for cloud {{ item_cloud.name }}"
+  include: create_server_group.yml
+  with_items: "{{ item_cloud.server_groups|default([]) }}"
+  loop_control:
+    loop_var: item_server_group
+  tags:
+    - server_groups
+
 - name: "Processing per cloud servers for cloud {{ item_cloud.name }}"
   include: create_server.yml
   with_items: "{{ item_cloud.servers|default([]) }}"
@@ -151,10 +144,10 @@
   tags:
     - servers
 
-- name: "Processing per cloud servers for cloud {{ item_cloud.name }}"
-  include: create_ecs.yml
-  with_items: "{{ item_cloud.ecss|default([]) }}"
+- name: "Processing per cloud floating_ips for cloud {{ item_cloud.name }}"
+  include: create_floating_ip.yml
+  with_items: "{{ item_cloud.floating_ips|default([]) }}"
   loop_control:
-    loop_var: item_ecs
+    loop_var: item_floating_ip
   tags:
-    - ecss
+    - floating_ips
